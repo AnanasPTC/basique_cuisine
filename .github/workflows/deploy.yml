@@ -21,3 +21,7 @@ jobs:
           git pull origin main
           docker-compose down
           docker-compose up -d --build
+
+- name: 🔍 Lancer les tests sur le serveur distant
+  run: |
+    ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "cd /var/www/basique_cuisine && ./run-tests.sh"
