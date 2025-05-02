@@ -1,26 +1,23 @@
-name: Deploy to Production
+name: 🚀 Deploy to Production
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Deploy to production server
-      uses: appleboy/ssh-action@master
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.6
       with:
-        host: basique-cuisine.site
-        username: root
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
           cd /var/www/basique_cuisine
           git pull origin main
           docker-compose down
-          docker-compose build
-          docker-compose up -d
+          docker-compose up -d --build
