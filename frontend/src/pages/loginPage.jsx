@@ -18,7 +18,6 @@ const LoginPage = () => {
       localStorage.setItem("token", token);
       setError("");
 
-      // 👇 Redirige vers l'accueil
       navigate("/");
     } catch (err) {
       console.error("Erreur Axios :", err);
