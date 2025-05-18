@@ -4,6 +4,7 @@ services:
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -13,12 +14,12 @@ services:
       - ./vhost.d:/etc/nginx/vhost.d
       - ./html:/usr/share/nginx/html
     networks:
-      - default
-    restart: always
+      - web
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: letsencrypt
+    restart: always
     environment:
       - NGINX_PROXY_CONTAINER=nginx-proxy
       - DEFAULT_EMAIL=lucas.huchede@gmail.com
@@ -30,29 +31,12 @@ services:
     depends_on:
       - nginx-proxy
     networks:
-      - default
-    restart: always
-
-  backend:
-    build: ./backend
-    container_name: laravel-api
-    volumes:
-      - ./backend:/var/www/app
-    depends_on:
-      - mysql_db
-    environment:
-      - VIRTUAL_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
-    expose:
-      - "80"
-    networks:
-      - default
-    restart: always
+      - web
 
   frontend:
     build: ./frontend
     container_name: react-app
+    restart: always
     environment:
       - VIRTUAL_HOST=basique-cuisine.site
       - LETSENCRYPT_HOST=basique-cuisine.site
@@ -60,23 +44,39 @@ services:
     expose:
       - "80"
     networks:
-      - default
+      - web
+
+  backend:
+    build: ./backend
+    container_name: laravel-api
     restart: always
+    volumes:
+      - ./backend:/var/www/app
+    environment:
+      - VIRTUAL_HOST=api.basique-cuisine.site
+      - LETSENCRYPT_HOST=api.basique-cuisine.site
+      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
+    expose:
+      - "80"
+    depends_on:
+      - mysql_db
+    networks:
+      - web
 
   mysql_db:
     image: mysql:latest
-    container_name: basique_cuisine-mysql_db-1
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: laravel
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=laravel
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
-      - default
-    restart: always
+      - web
 
 volumes:
   mysql_data:
 
 networks:
-  default:
+  web:
+    driver: bridge
