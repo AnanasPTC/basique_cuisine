@@ -39,6 +39,7 @@ const LoginPage = () => {
         <input type="password" name="password" placeholder="Mot de passe" onChange={handleChange} required />
         <button type="submit">Se connecter</button>
       </form>
+      
       <p>Pas encore de compte ?</p>
       <button onClick={goToRegister}>Créer un compte</button>
     </div>
