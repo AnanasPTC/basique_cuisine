@@ -1,35 +1,39 @@
 version: "3.9"
 
 services:
-  nginx-proxy:
+    nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/nginx/vhost.d
-      - /usr/share/nginx/html
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
     networks:
       - default
     restart: always
 
-  letsencrypt:
+
+    letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: letsencrypt
     environment:
       - NGINX_PROXY_CONTAINER=nginx-proxy
-      - DEFAULT_EMAIL=tonemail@example.com
+      - DEFAULT_EMAIL=lucas.huchede@gmail.com
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
     depends_on:
       - nginx-proxy
     networks:
       - default
     restart: always
+
 
   backend:
     build: ./backend
@@ -41,7 +45,7 @@ services:
     environment:
       - VIRTUAL_HOST=api.basique-cuisine.site
       - LETSENCRYPT_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_EMAIL=tonemail@example.com
+      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
     networks:
       - default
     restart: always
@@ -52,7 +56,7 @@ services:
     environment:
       - VIRTUAL_HOST=basique-cuisine.site
       - LETSENCRYPT_HOST=basique-cuisine.site
-      - LETSENCRYPT_EMAIL=tonemail@example.com
+      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
     networks:
       - default
     restart: always
