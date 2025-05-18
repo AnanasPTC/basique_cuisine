@@ -1,21 +1,26 @@
-FROM php:8.2-fpm
-
-# Installation des dépendances système
-RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip curl git libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip
-
-# Installation de Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Définir le répertoire de travail
-WORKDIR /var/www
-
-# Copier le code source
+# 1) Build JS/CSS avec Vite
+FROM node:18 AS node-build
+WORKDIR /app
+COPY package*.json vite.config.js ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# Installer les dépendances PHP
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# 2) PHP + Composer + extensions
+FROM php:8.1-fpm
+WORKDIR /var/www/html
 
-# Droits
-RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www/storage
+# Installer extensions PHP (ajustez selon vos besoins)
+RUN apt update && apt install -y libpng-dev libonig-dev libzip-dev \
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+
+# Copier les assets générés
+COPY --from=node-build /app/public/build /var/www/html/public/build
+
+# Copier le reste de l’app et installer Composer
+COPY --from=node-build /app /var/www/html
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-dev --optimize-autoloader
+
+# Permissions
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

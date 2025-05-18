@@ -1,81 +1,56 @@
-version: "3.9"
-
+version: "3.8"
 services:
+  app:
+    build: .
+    container_name: laravel_app
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - web
+
+  db:
+    image: mysql:8.0
+    container_name: laravel_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret_root_pw
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret_pw
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - web
+
   nginx-proxy:
     image: jwilder/nginx-proxy
-    container_name: nginx-proxy
-    restart: always
+    container_name: nginx_proxy
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./certs:/etc/nginx/certs
-      - ./vhost.d:/etc/nginx/vhost.d
-      - ./html:/usr/share/nginx/html
     networks:
       - web
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
-    container_name: letsencrypt
-    restart: always
+    container_name: nginx_letsencrypt
+    restart: unless-stopped
     environment:
-      - NGINX_PROXY_CONTAINER=nginx-proxy
-      - DEFAULT_EMAIL=lucas.huchede@gmail.com
+      NGINX_PROXY_CONTAINER: nginx-proxy
     volumes:
+      - ./certs:/etc/nginx/certs:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./certs:/etc/nginx/certs
-      - ./vhost.d:/etc/nginx/vhost.d
-      - ./html:/usr/share/nginx/html
-    depends_on:
-      - nginx-proxy
-    networks:
-      - web
-
-  frontend:
-    build: ./frontend
-    container_name: react-app
-    restart: always
-    environment:
-      - VIRTUAL_HOST=basique-cuisine.site
-      - LETSENCRYPT_HOST=basique-cuisine.site
-      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
-    expose:
-      - "80"
-    networks:
-      - web
-
-  backend:
-    build: ./backend
-    container_name: laravel-api
-    restart: always
-    volumes:
-      - ./backend:/var/www/app
-    environment:
-      - VIRTUAL_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_EMAIL=lucas.huchede@gmail.com
-    expose:
-      - "80"
-    depends_on:
-      - mysql_db
-    networks:
-      - web
-
-  mysql_db:
-    image: mysql:latest
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=laravel
-    volumes:
-      - mysql_data:/var/lib/mysql
     networks:
       - web
 
 volumes:
-  mysql_data:
+  db_data:
 
 networks:
   web:
