@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-    nginx-proxy:
+  nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
@@ -16,8 +16,7 @@ services:
       - default
     restart: always
 
-
-    letsencrypt:
+  letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
     container_name: letsencrypt
     environment:
@@ -33,7 +32,6 @@ services:
     networks:
       - default
     restart: always
-
 
   backend:
     build: ./backend
