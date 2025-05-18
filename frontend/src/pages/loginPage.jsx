@@ -31,13 +31,17 @@ const LoginPage = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Connexion</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-      <input type="password" name="password" placeholder="Mot de passe" onChange={handleChange} required />
-      <button type="submit">Se connecter</button>
-    </form>
+    <div>
+      <form onSubmit={handleSubmit}>
+        <h2>Connexion</h2>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
+        <input type="password" name="password" placeholder="Mot de passe" onChange={handleChange} required />
+        <button type="submit">Se connecter</button>
+      </form>
+      <p>Pas encore de compte ?</p>
+      <button onClick={goToRegister}>Créer un compte</button>
+    </div>
   );
 };
 
