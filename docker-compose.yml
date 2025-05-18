@@ -11,6 +11,8 @@ services:
       - VIRTUAL_HOST=api.basique-cuisine.site
       - LETSENCRYPT_HOST=api.basique-cuisine.site
       - LETSENCRYPT_EMAIL=tonemail@example.com
+    networks:
+      - default
 
   frontend:
     build: ./frontend
@@ -19,6 +21,8 @@ services:
       - VIRTUAL_HOST=basique-cuisine.site
       - LETSENCRYPT_HOST=basique-cuisine.site
       - LETSENCRYPT_EMAIL=tonemail@example.com
+    networks:
+      - default
 
   mysql_db:
     image: mysql:latest
