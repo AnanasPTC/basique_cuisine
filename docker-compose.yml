@@ -8,41 +8,43 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/nginx/certs:/etc/nginx/certs
-      - /etc/nginx/vhost.d:/etc/nginx/vhost.d
-      - /usr/share/nginx/html:/usr/share/nginx/html
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
       - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
     networks:
       - default
+    restart: always
 
-  nginx-letsencrypt:
+  letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
-    container_name: nginx-letsencrypt
+    container_name: letsencrypt
     environment:
       - NGINX_PROXY_CONTAINER=nginx-proxy
-    volumes_from:
-      - nginx-proxy
+      - DEFAULT_EMAIL=tonemail@example.com
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/acme.sh:/etc/acme.sh
+      - ./certs:/etc/nginx/certs
+    depends_on:
+      - nginx-proxy
     networks:
       - default
+    restart: always
 
   backend:
     build: ./backend
     container_name: laravel-api
     volumes:
-      - ./backend:/var/www
+      - ./backend:/var/www/app
     depends_on:
       - mysql_db
     environment:
       - VIRTUAL_HOST=api.basique-cuisine.site
       - LETSENCRYPT_HOST=api.basique-cuisine.site
-      - LETSENCRYPT_EMAIL=tonmail@tondomaine.com
-    expose:
-      - "80"
+      - LETSENCRYPT_EMAIL=tonemail@example.com
     networks:
       - default
+    restart: always
 
   frontend:
     build: ./frontend
@@ -50,25 +52,24 @@ services:
     environment:
       - VIRTUAL_HOST=basique-cuisine.site
       - LETSENCRYPT_HOST=basique-cuisine.site
-      - LETSENCRYPT_EMAIL=tonmail@tondomaine.com
-    expose:
-      - "80"
+      - LETSENCRYPT_EMAIL=tonemail@example.com
     networks:
       - default
+    restart: always
 
   mysql_db:
     image: mysql:latest
-    container_name: mysql_db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: laravel
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
       - default
+    restart: always
 
 volumes:
-  db_data:
+  mysql_data:
 
 networks:
   default:
