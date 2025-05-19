@@ -33,7 +33,7 @@ services:
 
   frontend:
     build:
-      context: ./basique_cuisine/frontend
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     environment:
