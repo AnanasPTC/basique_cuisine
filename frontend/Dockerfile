@@ -2,9 +2,9 @@
 FROM node:18-alpine AS builder
 WORKDIR /var/www/frontend
 
-# 1) Copier et installer les dépendances
+# 1) Copier et installer les dépendances sans options
 COPY package.json package-lock.json ./
-RUN npm ci --silent
+RUN npm ci --silent --no-optional
 
 # 2) Copier le reste du code et builder l'app
 COPY . .
