@@ -1,12 +1,12 @@
-# Étape 1 : builder avec Node.js 18
-FROM node:18-alpine AS builder
+# Étape 1 : builder avec Node.js 18 (Debian-slim)
+FROM node:18-slim AS builder
 WORKDIR /var/www/frontend
 
-# 1) Copier et installer les dépendances sans options
+# 1) Copier et installer les dépendances
 COPY package.json package-lock.json ./
-RUN npm ci --silent --no-optional
+RUN npm ci --silent
 
-# 2) Copier le reste du code et builder l'app
+# 2) Copier tout le code et builder l'app
 COPY . .
 RUN npm run build
 
