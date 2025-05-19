@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copie séparée des fichiers de dépendances pour profiter du cache Docker
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Ajout du code source
 COPY . .
