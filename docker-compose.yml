@@ -1,21 +1,17 @@
-# docker-compose.yml
 services:
-
-  # 1) Base de données MySQL
   db:
     image: mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: basique_cuisine
-      MYSQL_ROOT_PASSWORD: ""    # root sans mot de passe
+      MYSQL_ROOT_PASSWORD: ""
     volumes:
       - db_data:/var/lib/mysql
 
-  # 2) Backend Laravel
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile    # à créer ensuite
+      dockerfile: Dockerfile
     restart: unless-stopped
     working_dir: /var/www/backend
     environment:
@@ -26,38 +22,55 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: ""
       APP_ENV: production
-      # Générer votre clé : `php artisan key:generate --show`
-      APP_KEY: ""
+      APP_KEY: ""  # à générer !
+      VIRTUAL_HOST: basique-cuisine.site
+      LETSENCRYPT_HOST: basique-cuisine.site
+      LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
     volumes:
       - ./backend:/var/www/backend
     depends_on:
       - db
 
-  # 3) Frontend React/Vite
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile    # à créer ensuite
+      dockerfile: Dockerfile
     restart: unless-stopped
-    # Ce service va juste builder votre app et produire le dossier `dist/`
+    environment:
+      VIRTUAL_HOST: basique-cuisine.site
+      LETSENCRYPT_HOST: basique-cuisine.site
+      LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
+    depends_on:
+      - backend
 
-  # 4) Nginx : sert le front statique et reverse-proxy vers Laravel
-  nginx:
-    image: nginx:stable-alpine
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./frontend/dist:/usr/share/nginx/html:ro
-      - ./backend/public:/var/www/backend/public:ro
-      - certs:/etc/letsencrypt
-      - certs-data:/var/lib/letsencrypt
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
+      # Si tu veux ajouter ta conf Nginx perso :
+      # - ./nginx/custom.conf:/etc/nginx/conf.d/custom.conf:ro
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    restart: unless-stopped
     depends_on:
-      - backend
+      - nginx-proxy
+    environment:
+      DEFAULT_EMAIL: lucas.huchede@gmail.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./certs:/etc/nginx/certs
+      - ./vhost.d:/etc/nginx/vhost.d
+      - ./html:/usr/share/nginx/html
 
 volumes:
   db_data:
-  certs:
-  certs-data:
