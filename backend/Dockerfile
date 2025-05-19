@@ -1,26 +1,40 @@
-# 1) Build JS/CSS avec Vite
-FROM node:18 AS node-build
-WORKDIR /app
-COPY package*.json vite.config.js ./
-RUN npm ci
+# Utilise l'image officielle PHP 8.2 FPM
+FROM php:8.2-fpm
+
+# Installer les dépendances système et les extensions PHP
+RUN apt-get update && apt-get install -y \
+    git \
+    zip \
+    unzip \
+    libzip-dev \
+    libonig-dev \
+    libxml2-dev \
+  && docker-php-ext-install pdo_mysql mbstring xml zip
+
+# Installer Composer (depuis l'image officielle)
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Définir le répertoire de travail
+WORKDIR /var/www/backend
+
+# Copier les fichiers de dépendances puis installer
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+# Copier le reste de l'application
 COPY . .
-RUN npm run build
 
-# 2) PHP + Composer + extensions
-FROM php:8.1-fpm
-WORKDIR /var/www/html
+# Générer la clé de l'application et mettre en cache les configs
+RUN php artisan key:generate --ansi \
+  && php artisan config:cache \
+  && php artisan route:cache \
+  && php artisan view:cache
 
-# Installer extensions PHP (ajustez selon vos besoins)
-RUN apt update && apt install -y libpng-dev libonig-dev libzip-dev \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+# Définir les permissions pour le stockage et le cache
+RUN chown -R www-data:www-data /var/www/backend/storage /var/www/backend/bootstrap/cache \
+  && chmod -R 775 /var/www/backend/storage /var/www/backend/bootstrap/cache
 
-# Copier les assets générés
-COPY --from=node-build /app/public/build /var/www/html/public/build
+# Exposer le socket FPM
+EXPOSE 9000
 
-# Copier le reste de l’app et installer Composer
-COPY --from=node-build /app /var/www/html
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install --no-dev --optimize-autoloader
-
-# Permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+CMD ["php-fpm"]

@@ -1,10 +1,18 @@
-# Étape 1 : build
-FROM node:20 AS build
-WORKDIR /app
+cd frontend
+cat > Dockerfile << 'EOF'
+# Étape 1 : builder avec Node 18
+FROM node:18-alpine AS builder
+WORKDIR /var/www/frontend
+
+# 1. Copier et installer les dépendances
+COPY package.json package-lock.json ./
+RUN npm ci --silent
+
+# 2. Copier le code et builder l'app
 COPY . .
-RUN npm install
 RUN npm run build
 
-# Étape 2 : serve via nginx
-FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
+# Étape 2 : image minimale pour extraire dist
+FROM busybox:latest AS dist
+COPY --from=builder /var/www/frontend/dist /dist
+EOF
