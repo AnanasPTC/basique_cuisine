@@ -1,6 +1,5 @@
-cd frontend
-cat > Dockerfile << 'EOF'
-# Étape 1 : builder avec Node 18
+cat > /var/www/basique_cuisine/frontend/Dockerfile << 'EOF'
+# Étape 1 : builder avec Node.js 18
 FROM node:18-alpine AS builder
 WORKDIR /var/www/frontend
 
@@ -12,7 +11,7 @@ RUN npm ci --silent
 COPY . .
 RUN npm run build
 
-# Étape 2 : image minimale pour extraire dist
+# Étape 2 : image minimale pour extraire le build
 FROM busybox:latest AS dist
 COPY --from=builder /var/www/frontend/dist /dist
 EOF
