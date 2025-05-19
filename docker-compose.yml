@@ -31,15 +31,15 @@ services:
       LETSENCRYPT_HOST: basique-cuisine.site
       LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
 
-    frontend:
-      build:
-        context: ./basique_cuisine/frontend
-        dockerfile: Dockerfile
-      container_name: frontend
-      environment:
-        VIRTUAL_HOST: basique-cuisine.site
-        LETSENCRYPT_HOST: basique-cuisine.site
-        LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
+  frontend:
+    build:
+      context: ./basique_cuisine/frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    environment:
+      VIRTUAL_HOST: basique-cuisine.site
+      LETSENCRYPT_HOST: basique-cuisine.site
+      LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
     expose:
       - "80"
 
