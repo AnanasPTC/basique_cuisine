@@ -2,11 +2,9 @@
 FROM node:18-slim AS builder
 WORKDIR /var/www/frontend
 
-# 1) Copier et installer les dépendances
-COPY package.json package-lock.json ./
-RUN npm ci --silent
+COPY package.json ./
+RUN npm install --silent --no-optional
 
-# 2) Copier tout le code et builder l'app
 COPY . .
 RUN npm run build
 
