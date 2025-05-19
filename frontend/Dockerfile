@@ -1,13 +1,12 @@
-# Étape 1 : builder avec Node.js 18 (Debian-slim)
-FROM node:18-slim AS builder
-WORKDIR /var/www/frontend
-
-COPY package.json ./
-RUN npm install --silent --no-optional
-
+# Étape 1 : build du frontend avec Node.js
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# Étape 2 : image minimale pour extraire /dist
-FROM busybox:latest AS dist
-COPY --from=builder /var/www/frontend/dist /dist
+# Étape 2 : Nginx sert les fichiers statiques
+FROM nginx:stable-alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+EXPOSE 80

@@ -31,17 +31,18 @@ services:
       LETSENCRYPT_HOST: basique-cuisine.site
       LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
 
-  frontend:
-    image: node:18
-    container_name: frontend
-    working_dir: /app
-    command: sh -c "npm install && npm run build && npx serve -s dist"
-    volumes:
-      - ./basique_cuisine/frontend:/app
-    environment:
-      VIRTUAL_HOST: basique-cuisine.site
-      LETSENCRYPT_HOST: basique-cuisine.site
-      LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
+    frontend:
+      build:
+        context: ./basique_cuisine/frontend
+        dockerfile: Dockerfile
+      container_name: frontend
+      environment:
+        VIRTUAL_HOST: basique-cuisine.site
+        LETSENCRYPT_HOST: basique-cuisine.site
+        LETSENCRYPT_EMAIL: lucas.huchede@gmail.com
+    expose:
+      - "80"
+
 
   nginx-proxy:
     image: nginxproxy/nginx-proxy
