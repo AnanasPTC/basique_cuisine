@@ -6,6 +6,7 @@ export default defineConfig({
   build: {
     outDir: '../backend/public',  // Chemin vers le public de Laravel
     emptyOutDir: false,           // Ne pas effacer le public entier
+    manifest: true,
   },
   resolve: {
     alias: {
